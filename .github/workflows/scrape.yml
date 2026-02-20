@@ -1,8 +1,8 @@
-name: Scrape LinkedIn Invitations
+name: Scrape LinkedIn
 on:
   schedule:
-    - cron: '0 9 * * *'  # 1x/dia às 9h UTC (ajuste timezone)
-  workflow_dispatch:  # permite rodar manual
+    - cron: '0 12 * * *'  # 1x/dia
+  workflow_dispatch:
 
 jobs:
   scrape:
@@ -10,15 +10,11 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
-      with:
+      with: 
         node-version: 20
-    - run: npm ci
+    - run: npm install                    # ← MUDANÇA AQUI!
     - name: Install Chrome
       run: |
-        sudo apt-get update
-        sudo apt-get install -y wget unzip fonts-liberation libasound2 libatk-bridge2.0-0 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libxss1 libnss3-dev libnspr4 xvfb
-        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-        echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
         sudo apt-get update
         sudo apt-get install -y google-chrome-stable
     - run: npm run scrape
