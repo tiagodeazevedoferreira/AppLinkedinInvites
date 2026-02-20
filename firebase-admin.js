@@ -1,14 +1,25 @@
-require('dotenv').config();  // ← ADICIONE ESSA LINHA PRIMEIRA!
-
+// Topo do firebase-admin.js (SUBSTITUA COMPLETO)
 const admin = require('firebase-admin');
+
+// Fix private key pra GitHub secrets (multi-linha → string única)
+const privateKey = process.env.FIREBASEPRIVATEKEY
+  ? process.env.FIREBASEPRIVATEKEY.replace(/\\n/g, '\n')
+  : '';
+
 const serviceAccount = {
   projectId: process.env.FIREBASEPROJECTID,
-  privateKey: (process.env.FIREBASEPRIVATEKEY || '').replace(/\\n/g, '\n'),
+  privateKey: privateKey,
   clientEmail: process.env.FIREBASECLIENTEMAIL
 };
 
-if (!serviceAccount.projectId) {
-  console.error('❌ FIREBASEPROJECTID não encontrado! Use .env');
+console.log('🔍 Firebase config:', {
+  projectId: serviceAccount.projectId ? 'OK' : 'MISSING',
+  privateKey: privateKey.includes('BEGIN PRIVATE KEY') ? 'OK' : 'INVALID',
+  clientEmail: serviceAccount.clientEmail ? 'OK' : 'MISSING'
+});
+
+if (!serviceAccount.projectId || !privateKey.includes('PRIVATE KEY')) {
+  console.error('❌ Firebase secrets inválidos!');
   process.exit(1);
 }
 
@@ -18,14 +29,8 @@ admin.initializeApp({
 });
 
 const db = admin.database();
-
-// Teste conexão
-db.ref('.info/connected').on('value', (snap) => {
-  if (snap.val() === true) {
-    console.log('✅ Firebase conectado!');
-  } else {
-    console.error('❌ Firebase desconectado!');
-  }
+db.ref('.info/connected').on('value', snap => {
+  console.log('Firebase:', snap.val() ? '✅ Conectado' : '❌ Desconectado');
 });
 
 module.exports = db;
