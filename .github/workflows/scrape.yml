@@ -1,6 +1,8 @@
 name: Scrape LinkedIn Invitations
+
 on:
-  schedule: - cron: '0 9 * * *'
+  schedule:
+    - cron: '0 9 * * *'
   workflow_dispatch:
 
 jobs:
@@ -8,19 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    
     - uses: actions/setup-node@v4
-      with: node-version: 20
-      
+      with:
+        node-version: 20
     - run: npm install
-      
-    # PUPPETEER AUTO-INSTALA CHROME + deps (mais simples!)
-    - run: npx puppeteer browsers install chrome --install-deps
-    
+    - run: npx puppeteer browsers install chrome
     - run: npm run scrape
       env:
         LINKEDIN_EMAIL: ${{ secrets.LINKEDINEMAIL }}
         LINKEDIN_PASSWORD: ${{ secrets.LINKEDINPASSWORD }}
-        FIREBASEPROJECTID: ${{ secrets.FIREBASEPROJECTID }}
-        FIREBASEPRIVATEKEY: ${{ secrets.FIREBASEPRIVATEKEY }}
-        FIREBASECLIENTEMAIL: ${{ secrets.FIREBASECLIENTEMAIL }}
+        FIREBASEPROJECTID: ${{
