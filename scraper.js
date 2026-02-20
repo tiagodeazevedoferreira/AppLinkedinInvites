@@ -1,8 +1,13 @@
 const puppeteer = require('puppeteer');
 const db = require('./firebase-admin');
 
-async function scrapeInvitations() {
-  console.log('🚀 Iniciando...');
+// Polyfill para waitForTimeout (removido no Puppeteer v23)
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function scrapeInvitations()
+
   
   const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox']});
   const page = await browser.newPage();
