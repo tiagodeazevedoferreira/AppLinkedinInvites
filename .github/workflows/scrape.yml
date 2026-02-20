@@ -2,7 +2,7 @@ name: Scrape LinkedIn Invitations
 
 on:
   schedule:
-    - cron: '0 9 * * *'  # 9h UTC
+    - cron: '0 9 * * *'
   workflow_dispatch:
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
       with:
         node-version: 20
 
-    - run: npm ci
+    - run: npm install  # Mudança aqui: install ao invés de ci
 
     - run: npx puppeteer browsers install chrome
 
