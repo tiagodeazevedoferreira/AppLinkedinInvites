@@ -1,12 +1,11 @@
 name: Scrape LinkedIn Invitations
-
 on:
   schedule:
     - cron: '0 9 * * *'
   workflow_dispatch:
-
 jobs:
   scrape:
+    
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
