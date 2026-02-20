@@ -42,36 +42,40 @@ async function scrapeInvitations() {
       }
     });
 
-    // **SEUS SELECTORS REAIS**
-    const invitations = await page.evaluate(() => {
-      const invites = [];
-      // Encontra TODOS os links de nome como o seu exemplo
-      const nameLinks = document.querySelectorAll('a.cdcea5fd._3fb3cb84');
-      
-      nameLinks.forEach(link => {
-        const name = link.textContent.trim();
+// Na parte de extração (substitua só essa função)
+const invitations = await page.evaluate(() => {
+  const invites = [];
+  // Selectors FLEXÍVEIS pros seus convites reais
+  const nameSelectors = [
+    'a.cdcea5fd._3fb3cb84',    // Kleber
+    'a.de3d5865.ee709ba4',     // Carina  
+    'a[class*="ee"]',          // Padrão LinkedIn nomes
+    '[data-test-id*="name"] a', // Fallback
+    'h3 a, .actor-name a'      // Genérico
+  ];
+  
+  nameSelectors.forEach(selector => {
+    document.querySelectorAll(selector).forEach(link => {
+      const name = link.textContent.trim();
+      if (name && !invites.some(i => i.name === name)) {
         const profileUrl = link.href;
+        const headlineEl = link.closest('div')?.querySelector('.subline-level-1, .headline');
+        const statusEl = link.closest('[data-test-id*="invitation"]')?.querySelector('.status');
         
-        // Próximo headline/cargo (irmão ou próximo elemento)
-        const headlineEl = link.closest('div')?.nextElementSibling || 
-                         link.parentElement?.nextElementSibling?.querySelector('.subline-level-1, .entity-result__summary');
-        const headline = headlineEl?.textContent?.trim() || 'N/A';
-        
-        // Status próximo
-        const statusEl = link.closest('[data-test-id*="invitation"]')?.querySelector('[data-test-id*="status"]');
-        const status = statusEl?.textContent?.trim() || 'Pendente';
-        
-        invites.push({ 
-          name, 
-          headline, 
-          profileUrl, 
-          status,
+        invites.push({
+          name,
+          headline: headlineEl?.textContent?.trim() || 'N/A',
+          profileUrl,
+          status: statusEl?.textContent?.trim() || 'Pendente',
           sentAt: new Date().toLocaleString('pt-BR')
         });
-      });
-      
-      return invites;
+      }
     });
+  });
+  
+  return invites.slice(0, 20); // Limite pra performance
+});
+
 
     console.log(`📊 ${invitations.length} convites:`, invitations.slice(0, 2));
 
