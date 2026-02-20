@@ -15,16 +15,15 @@ jobs:
       with:
         node-version: 20
 
-    - run: npm install  # Mudança aqui: install ao invés de ci
+    - run: npm install  # Corrige falta de package-lock
 
-    - run: npx puppeteer browsers install chrome
+    - run: npx puppeteer browsers install chrome  # Simplificado
 
-- run: npm run scrape
-  env:
-    LINKEDIN_EMAIL: ${{ secrets.LINKEDIN_EMAIL }}
-    LINKEDIN_PASSWORD: ${{ secrets.LINKEDIN_PASSWORD }}
-    FIREBASEPROJECTID: ${{ secrets.FIREBASEPROJECTID }}
-    FIREBASEPRIVATEKEY: |-
-      ${{ secrets.FIREBASEPRIVATEKEY }}
-    FIREBASECLIENTEMAIL: ${{ secrets.FIREBASECLIENTEMAIL }}
-
+    - run: npm run scrape
+      env:
+        LINKEDIN_EMAIL: ${{ secrets.LINKEDIN_EMAIL }}
+        LINKEDIN_PASSWORD: ${{ secrets.LINKEDIN_PASSWORD }}
+        FIREBASEPROJECTID: ${{ secrets.FIREBASEPROJECTID }}
+        FIREBASEPRIVATEKEY: |-
+          ${{ secrets.FIREBASEPRIVATEKEY }}
+        FIREBASECLIENTEMAIL: ${{ secrets.FIREBASECLIENTEMAIL }}
