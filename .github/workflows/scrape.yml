@@ -19,11 +19,12 @@ jobs:
 
     - run: npx puppeteer browsers install chrome
 
-    - run: npm run scrape
-      env:
-        LINKEDIN_EMAIL: ${{ secrets.LINKEDIN_EMAIL }}
-        LINKEDIN_PASSWORD: ${{ secrets.LINKEDIN_PASSWORD }}
-        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-        FIREBASE_PRIVATE_KEY: |-
-          ${{ secrets.FIREBASE_PRIVATE_KEY }}
-        FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+- run: npm run scrape
+  env:
+    LINKEDIN_EMAIL: ${{ secrets.LINKEDIN_EMAIL }}
+    LINKEDIN_PASSWORD: ${{ secrets.LINKEDIN_PASSWORD }}
+    FIREBASEPROJECTID: ${{ secrets.FIREBASEPROJECTID }}
+    FIREBASEPRIVATEKEY: |-
+      ${{ secrets.FIREBASEPRIVATEKEY }}
+    FIREBASECLIENTEMAIL: ${{ secrets.FIREBASECLIENTEMAIL }}
+
