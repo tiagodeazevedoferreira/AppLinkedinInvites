@@ -2,17 +2,42 @@
 <html>
 <head>
   <title>LinkedIn Tracker</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0073b1">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Convites LinkedIn</h1>
-  <div id="invites-list"></div>
+  <div class="container">
+    <header>
+      <h1>📊 Convites LinkedIn</h1>
+      <div class="stats" id="stats">
+        <div class="stat-card">
+          <div class="stat-number" id="total-count">0</div>
+          <div>Total Convites</div>
+        </div>
+      </div>
+    </header>
+    
+    <div id="invites-list">
+      <div class="loading">🔄 Carregando convites do Firebase...</div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs (compat mode para app.js simples) -->
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-database-compat.js"></script>
-  <script src="js/firebase-client.js"></script>
-  <script src="js/app.js"></script>
-  <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+  
+  <!-- Seu config + app.js -->
+  <script src="firebase-client.js"></script>
+  <script src="app.js"></script>
+  
+  <!-- PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(console.error);
+    }
+  </script>
 </body>
 </html>
