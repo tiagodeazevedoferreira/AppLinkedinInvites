@@ -1,27 +1,32 @@
 name: Scrape LinkedIn Invitations
+
 on:
-  schedule: - cron: '0 9 * * *'
-  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * *'  # 9h UTC diário
+  workflow_dispatch:  # manual
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    
     - uses: actions/setup-node@v4
-      with: node-version: 20
-    - run: npm install  # ✅ Corrige o erro
+      with:
+        node-version: 20
+        
+    - run: npm install
     
     - name: Install Chrome
       run: |
-        sudo apt-get update
+        sudo apt-get update -qq
         sudo apt-get install -y \
           wget unzip fonts-liberation libasound2 libatk-bridge2.0-0 \
           libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxrandr2 \
           libgbm1 libxss1 libnss3 libnspr4 xvfb
-        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-        echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-        sudo apt-get update
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list
+        sudo apt-get update -qq
         sudo apt-get install -y google-chrome-stable
     
     - run: npm run scrape
