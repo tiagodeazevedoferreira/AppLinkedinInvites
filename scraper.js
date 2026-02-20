@@ -1,4 +1,7 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
+
 const fs = require('fs');
 const db = require('./firebase-admin');
 
@@ -8,30 +11,50 @@ function sleep(ms) {
 
 async function scrapeInvitations() {
   const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    headless: false,  // Mude para 'new' ou true após depurar
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-blink-features=AutomationControlled',
+      '--window-size=1366,768'
+    ]
   });
   const page = await browser.newPage();
   await page.setViewport({ width: 1366, height: 768 });
-  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36');
 
   try {
     console.log('🔐 Iniciando login...');
     await page.goto('https://www.linkedin.com/login/', { waitUntil: 'networkidle2' });
-    await page.waitForSelector('#username', { timeout: 10000 });
-    await page.type('#username', process.env.LINKEDIN_EMAIL || '', { delay: 100 });
-    await page.type('#password', process.env.LINKEDIN_PASSWORD || '', { delay: 100 });
+    await page.waitForSelector('#username', { timeout: 30000 });
+    await page.type('#username', process.env.LINKEDIN_EMAIL || '', { delay: 80 });
+    await page.waitForSelector('#password', { timeout: 10000 });
+    await page.type('#password', process.env.LINKEDIN_PASSWORD || '', { delay: 90 });
 
-    await Promise.any([
-      page.click('button[type="submit"]'),
-      page.click('.btn__primary--large'),
-      page.click('button[aria-label*="Entrar"]')
-    ]);
+    await page.waitForSelector('button[type="submit"], button.sign-in__button, button[aria-label*="Entrar"]', { timeout: 10000 });
+    await page.click('button[type="submit"], button.sign-in__button, button[aria-label*="Entrar"]');
 
-    // DEBUG screenshots
-    await page.screenshot({ path: 'debug-login.png' });
+    // Espera redirecionamento e verifica login
+    await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 45000 }).catch(() => {});
+    await sleep(5000);  // Delay extra para carregar dashboard
 
-    // Sent invitations
+    const isLoggedIn = await page.evaluate(() => {
+      return document.title.includes('LinkedIn') && !document.title.includes('Login') && !!document.querySelector('header[data-litms-control-urn="global_nav"]');
+    });
+
+    if (!isLoggedIn) {
+      console.error('❌ Login falhou. Título atual:', await page.title());
+      await page.screenshot({ path: 'debug-login-falhou.png', fullPage: true });
+      await browser.close();
+      return;
+    }
+
+    console.log('✅ Login bem-sucedido!');
+
+    // DEBUG screenshot pós-login
+    await page.screenshot({ path: 'debug-login-sucesso.png' });
+
+    // Acessa convites enviados
     await page.goto('https://www.linkedin.com/mynetwork/invitation-manager/sent/', { waitUntil: 'domcontentloaded' });
     await sleep(5000);
 
