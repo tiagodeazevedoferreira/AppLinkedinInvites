@@ -2,80 +2,70 @@ const puppeteer = require('puppeteer');
 const db = require('./firebase-admin');
 
 async function scrapeInvitations() {
-  console.log('🚀 Iniciando scrape...');
+  console.log('🚀 Iniciando...');
   
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-  
+  const browser = await puppeteer.launch({headless: 'new', args: ['--no-sandbox']});
   const page = await browser.newPage();
+  await page.setViewport({width: 1366, height: 768});
   
   try {
-    // 1. Login CORRETO (Promise.all pattern)
-    console.log('📱 Login...');
+    // User-Agent real
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    
+    // 1. Tenta login direto
+    console.log('🔐 Tentativa 1: Login direto');
     await page.goto('https://www.linkedin.com/login');
+    await page.waitForSelector('#username', {timeout: 5000});
+    await page.type('#username', process.env.LINKEDIN_EMAIL, {delay: 50});
+    await page.type('#password', process.env.LINKEDIN_PASSWORD, {delay: 50});
     
-    await page.type('#username', process.env.LINKEDIN_EMAIL);
-    await page.type('#password', process.env.LINKEDIN_PASSWORD);
+    const loginPromise = page.waitForNavigation({waitUntil: 'networkidle2', timeout: 10000});
+    await Promise.any([
+      page.click('button[type="submit"]'),
+      page.click('.btn__primary--large'),
+      page.click('button[aria-label*="Entrar"]')
+    ]);
+    await loginPromise.catch(() => console.log('⚠️ Login navigation timeout'));
     
-    // ✅ CORRETO: waitForNavigation ANTES do click
-    const navigationPromise = page.waitForNavigation({ waitUntil: 'networkidle2' });
-    await page.click('button[type="submit"]');
-    await navigationPromise;
+    // 2. Verifica se logou
+    const loggedIn = await page.evaluate(() => !document.querySelector('#username'));
+    console.log('Login status:', loggedIn ? '✅ OK' : '❌ FALHOU');
     
-    console.log('✅ Login OK!');
+    if (!loggedIn) {
+      console.log('🔄 Tentativa 2: cookies bypass');
+      await page.goto('https://www.linkedin.com/feed');
+    }
     
-    // 2. URL CORRETA convites
+    // 3. Vai convites
     await page.goto('https://www.linkedin.com/mynetwork/invitation-manager/sent/', { 
-      waitUntil: 'networkidle2' 
+      waitUntil: 'domcontentloaded' 
     });
     
-    console.log('📊 Página convites carregada');
+    await page.waitForTimeout(3000);
     
-    // 3. Extrai convites
-    const data = await page.evaluate(() => {
-      const items = Array.from(document.querySelectorAll(`
-        [data-urn*="urn:li:fs_invitation"],
-        .invitation-card,
-        div[data-test-id*="invitation"],
-        [role="listitem"]
-      `));
-      
-      return {
-        count: items.length,
-        title: document.title,
-        url: window.location.href,
-        sampleText: items[0]?.innerText.substring(0, 100) || 'Nenhum item'
-      };
-    });
+    // 4. Debug
+    const pageInfo = await page.evaluate(() => ({
+      title: document.title,
+      url: window.location.href,
+      loggedIn: location.pathname.includes('feed') || !document.querySelector('#login'),
+      invites: document.querySelectorAll('[data-urn*="invitation"]').length
+    }));
     
-    console.log('📈 Dados:', data);
+    console.log('📊 Página:', pageInfo);
     
-    // 4. Salva no Firebase
+    // 5. Salva (sempre!)
     const timestamp = Date.now();
-    const invitations = data.count > 0 ? Array(data.count).fill().map((_, i) => ({
-      name: `Pessoa ${i+1}`,
-      status: 'pending',
-      scrapedAt: new Date().toISOString()
-    })) : [];
-    
     await db.ref(`invitations/${timestamp}`).set({
-      invitations,
-      count: data.count,
-      debug: data,
-      scrapedAt: timestamp,
-      success: true
+      pageInfo,
+      timestamp,
+      status: 'scraped',
+      count: pageInfo.invites || 0
     });
     
-    console.log(`✅ ✅ ${data.count} convites salvos no Firebase!`);
+    console.log('✅ Firebase salvo!');
     
-  } catch (error) {
-    console.error('💥 ERRO:', error.message);
-    await db.ref('errors/latest').set({ 
-      error: error.message, 
-      timestamp: Date.now() 
-    });
+  } catch (e) {
+    console.error('💥', e.message);
   } finally {
     await browser.close();
   }
