@@ -1,0 +1,11 @@
+linkedin-tracker/
+├── scraper.js                        # Script Puppeteer + Firebase
+├── firebase-admin.js                 # Config Firebase
+├── package.json                      # Dependências
+├── index.html                        # Frontend PWA
+├── style.css                         # CSS frontend
+├── app.js                            # JS frontend + Firebase client
+├── firebase-client.js                # Config Firebase client
+├── manifest.json                     # PWA manifest
+├── sw.js                             # Service Worker PWA
+└── .github/workflows/scrape.yml      # Workflow (única pasta)

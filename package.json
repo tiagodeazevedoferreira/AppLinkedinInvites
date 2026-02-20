@@ -2,7 +2,7 @@
   "name": "linkedin-tracker",
   "version": "1.0.0",
   "scripts": {
-    "scrape": "node src/scraper.js"
+    "scrape": "node scraper.js"
   },
   "dependencies": {
     "puppeteer": "^23.0.0",
