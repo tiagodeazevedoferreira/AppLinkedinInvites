@@ -1,0 +1,11 @@
+{
+  "name": "linkedin-tracker",
+  "version": "1.0.0",
+  "scripts": {
+    "scrape": "node src/scraper.js"
+  },
+  "dependencies": {
+    "puppeteer": "^23.0.0",
+    "firebase-admin": "^12.0.0"
+  }
+}
