@@ -2,32 +2,31 @@ name: Scrape LinkedIn Invitations
 
 on:
   schedule:
-    - cron: '0 9 * * *'
-  workflow_dispatch:
+    - cron: '0 9 * * *'  # 9h UTC = 6h BRT
+  workflow_dispatch:     # permite rodar manualmente
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 20
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-    - name: Install dependencies
-      run: npm install
+      - name: Install dependencies
+        run: npm install                  # ← importante: mudou de ci para install
 
-    - name: Install Chrome for Puppeteer
-      run: npx puppeteer browsers install chrome
+      - name: Install Chrome for Puppeteer
+        run: npx puppeteer browsers install chrome
 
-    - name: Run scraper
-      run: npm run scrape
-      env:
-        LINKEDIN_EMAIL: ${{ secrets.LINKEDIN_EMAIL }}
-        LINKEDIN_PASSWORD: ${{ secrets.LINKEDIN_PASSWORD }}
-        FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-        FIREBASE_PRIVATE_KEY: |-
-          ${{ secrets.FIREBASE_PRIVATE_KEY }}
-        FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      - name: Run scraper
+        run: npm run scrape
+        env:
+          LINKEDIN_EMAIL: ${{ secrets.LINKEDIN_EMAIL }}
+          LINKEDIN_PASSWORD: ${{ secrets.LINKEDIN_PASSWORD }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_PRIVATE_KEY: |-
+            ${{ secrets.FIREBASE_PRIVATE_KEY }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
